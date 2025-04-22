@@ -154,6 +154,13 @@ def parse_args() -> argparse.Namespace:
         help="disable the non-Windows services warning",
         action="store_true",
     )
+    parser.add_argument(
+        "--output-dir",
+        metavar="<output_dir>",
+        type=str,
+        default="build",
+        help="specify a custom directory for generated scripts",
+    )
     args = parser.parse_args()
 
     if args.kernel_mode and not args.get_dependencies:
@@ -461,17 +468,16 @@ def main() -> int:
         for line in LOAD_HIVE_LINES.split("\n")[::-1]:
             script_lines.appendleft(line)
 
-        script_lines.append("shutdown /r /f /t 0")
+        # script_lines.append("shutdown /r /f /t 0")
 
     current_time = datetime.now()
 
-    if not os.path.exists("build"):
-        os.mkdir("build")
+    build_root = args.output_dir
+    os.makedirs(build_root, exist_ok=True)
 
-    build_dir = os.path.join("build", f"build-{current_time.strftime('%d%m%y%H%M%S')}")
-
-    os.makedirs(build_dir)
-
+    build_dir = os.path.join(build_root, f"build-{current_time.strftime('%d%m%y%H%M%S')}")
+    os.makedirs(build_dir, exist_ok=True)
+    
     with open(os.path.join(build_dir, "Services-Disable.bat"), "w", encoding="utf-8") as file:
         for line in ds_lines:
             file.write(f"{line}\n")
